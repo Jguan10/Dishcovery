@@ -1,13 +1,11 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import re
 from sklearn.neighbors import NearestNeighbors
 import scipy.sparse
 import pickle
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
-import nltk
 
 with st.spinner('Loading models...'):
     with open('models/nearest_neighbors_model.pkl', 'rb') as f:
