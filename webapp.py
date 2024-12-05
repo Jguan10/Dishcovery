@@ -37,6 +37,9 @@ def lemmatize_list(list):
 
 @st.cache_data
 def recommend(preferred_ingredients, top_n=5, excluded_ingredients=None):
+    if not preferred_ingredients or not preferred_ingredients.strip():
+        return pd.DataFrame()
+     
     excluded_ingredients = None if not excluded_ingredients.strip() else excluded_ingredients
 
     if excluded_ingredients is None:
@@ -78,6 +81,9 @@ if st.button('Get Recommendations', key = 'Recommendations'):
         for index, row in recommendations.iterrows():
             with st.expander(row['Name']):
                 st.markdown(f"## {row['Name']}")
+                st.write("**Description:**")
+                desc = row['Description']
+                st.write(desc)
                 st.write(f"**Similarity:** {row['Similarity']:.2f}")
                 st.write("**Ingredients:**")
                 raw_ingredients_list = row['IngredientsRaw'].split("', '")
