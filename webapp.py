@@ -40,7 +40,7 @@ def load_vectorizer():
         vectorizer = pickle.load(f)
     return vectorizer
 
-@st.cache_data
+@st.cache_resource
 def load_data():
     df1 = pd.read_csv('Data/revised_recipes_1_1.csv.zst', compression="zstd")
     df2 = pd.read_csv('Data/revised_recipes_1_2.csv.zst', compression="zstd")
