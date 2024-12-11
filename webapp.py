@@ -139,8 +139,10 @@ st.write(f'Things to Exclude are: {exclude_list}')
 
 # Display each recipe in an expander
 if st.button('Get Recommendations', key = 'Recommendations'):
+    st.write(f"Memory usage after pressing button: {get_memory_usage():.2f} MB")
     with st.spinner('Recommending...'):
         recommendations = recommend(ingredients_list, excluded_ingredients = exclude_list)
+        st.write(f"Memory usage after recommending: {get_memory_usage():.2f} MB")
         for index, row in recommendations.iterrows():
             with st.expander(row['Name']):
                 st.markdown(f"## {row['Name']}")
