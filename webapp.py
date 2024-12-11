@@ -70,16 +70,26 @@ def load_data():
 
     return data
 
-with st.spinner('Loading Data...'):
-    data = load_data()
-    st.write(f"Memory usage load_data: {get_memory_usage():.2f} MB")
+def initialize_session_state():
+    if "data" not in st.session_state:
+        with st.spinner("Loading data..."):
+            st.session_state["data"] = load_data()
 
+    if "nearest_neighbors" not in st.session_state:
+        with st.spinner("Loading nearest neighbors model..."):
+            st.session_state["nearest_neighbors"] = load_knn()
 
-with st.spinner('Loading models...'):
-    nearest_neighbors = load_knn()
-    vectorizer = load_vectorizer()
-    tfidf_matrix = load_matrix()
-    st.write(f"Memory usage after load_models: {get_memory_usage():.2f} MB")
+    if "vectorizer" not in st.session_state:
+        with st.spinner("Loading vectorizer..."):
+            st.session_state["vectorizer"] = load_vectorizer()
+
+    if "tfidf_matrix" not in st.session_state:
+        with st.spinner("Loading TF-IDF matrix..."):
+            st.session_state["tfidf_matrix"] = load_matrix()
+
+initialize_session_state()
+
+st.write(f"Memory usage after initialization: {get_memory_usage():.2f} MB")
 
 lemmatizer = WordNetLemmatizer()
 
