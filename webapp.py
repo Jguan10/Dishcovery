@@ -12,7 +12,6 @@ from nltk.tokenize import word_tokenize
 import zstandard as zstd
 
 def clear_session_and_cache():
-    
     st.session_state.clear()
     st.cache_data.clear()
     st.cache_resource.clear()
@@ -57,7 +56,6 @@ def load_vectorizer():
         vectorizer = pickle.load(f)
     return vectorizer
 
-@st.cache_data
 def load_data():
     df1 = pd.read_csv('Data/revised_recipes_1_1.csv.zst', compression="zstd")
     df2 = pd.read_csv('Data/revised_recipes_1_2.csv.zst', compression="zstd")
