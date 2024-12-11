@@ -1,6 +1,7 @@
 import nltk
 
 import streamlit as st
+import psutil
 import pandas as pd
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
@@ -10,6 +11,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 import zstandard as zstd
 
+st.write(f"Initial memory usage: {get_memory_usage():.2f} MB")
 @st.cache_resource
 def download_nltk_resources():
     resources = ['punkt', 'wordnet']
@@ -21,7 +23,7 @@ def download_nltk_resources():
 
 download_nltk_resources()
 
-@st.cache_resource
+st.write(f"Memory usage after NLTK dl: {get_memory_usage():.2f} MB")
 
 @st.cache_resource
 def load_knn():
@@ -64,11 +66,14 @@ def load_data():
 
 with st.spinner('Loading Data...'):
     data = load_data()
+    st.write(f"Memory usage load_data: {get_memory_usage():.2f} MB")
+
 
 with st.spinner('Loading models...'):
     nearest_neighbors = load_knn()
     vectorizer = load_vectorizer()
     tfidf_matrix = load_matrix()
+    st.write(f"Memory usage after load_models: {get_memory_usage():.2f} MB")
 
 lemmatizer = WordNetLemmatizer()
 
@@ -82,6 +87,8 @@ def lemmatize_string(string):
 @st.cache_data
 def lemmatize_list(list):
     return [lemmatizer.lemmatize(item.lower()) for item in list]
+
+st.write(f"Memory usage after cache nlp: {get_memory_usage():.2f} MB")
 
 @st.cache_data
 def recommend(preferred_ingredients, top_n=5, excluded_ingredients=None):
@@ -114,6 +121,8 @@ def recommend(preferred_ingredients, top_n=5, excluded_ingredients=None):
     recommendations = recommendations[~recommendations['NLP_Ingredients'].apply(contains_excluded)]
     
     return recommendations
+
+st.write(f"Memory usage after cache recommendations: {get_memory_usage():.2f} MB")
 
 st.title('Dishcovery')
 ingredients_list = st.text_input("Which Ingredients Are You Using?")
