@@ -10,16 +10,12 @@ import pickle
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 import zstandard as zstd
-import uuid
 
 def clear_session_and_cache():
-    session_id = st.experimental_get_query_params().get("session_id", None)
-    if not session_id:
-        session_id = str(uuid.uuid4())
-        st.experimental_set_query_params(session_id=session_id)
-        st.session_state.clear()
-        st.cache_data.clear()
-        st.cache_resource.clear()
+    
+    st.session_state.clear()
+    st.cache_data.clear()
+    st.cache_resource.clear()
 
 clear_session_and_cache()
 
