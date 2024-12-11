@@ -11,6 +11,13 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 import zstandard as zstd
 
+def get_memory_usage():
+    process = psutil.Process()
+    memory_info = process.memory_info()
+    return memory_info.rss / 1024 ** 2 
+
+st.write(f"Initial memory usage: {get_memory_usage():.2f} MB")
+
 @st.cache_resource
 def download_nltk_resources():
     resources = ['punkt_tab', 'wordnet']
@@ -21,6 +28,8 @@ def download_nltk_resources():
             nltk.download(resource)
 
 download_nltk_resources()
+
+st.write(f"Memory usage after NLTK dl: {get_memory_usage():.2f} MB")
 
 @st.cache_resource
 def load_knn():
@@ -61,6 +70,7 @@ def load_data():
 
     return data
 
+st.write(f"Memory usage after initializing: {get_memory_usage():.2f} MB")
 
 data = load_data()
 nearest_neighbors = load_knn()
@@ -122,6 +132,7 @@ if st.button('Get Recommendations', key = 'Recommendations'):
     with st.spinner('Recommending...'):
         recommendations = recommend(ingredients_list, excluded_ingredients = exclude_list)
         for index, row in recommendations.iterrows():
+            st.write(f"Memory usage after recommending: {get_memory_usage():.2f} MB")
             with st.expander(row['Name']):
                 st.markdown(f"## {row['Name']}")
                 st.write(f"**Similarity:** {row['Similarity']:.2f}")
