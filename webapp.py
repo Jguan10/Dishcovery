@@ -11,10 +11,14 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 import zstandard as zstd
 
-st.cache_resource.clear()
-st.cache_data.clear()
-for key in st.session_state.keys():
-    del st.session_state[key]
+@st.cache_resource
+def clear_cache_session():
+    st.cache_resource.clear()
+    st.cache_data.clear()
+    for key in st.session_state.keys():
+        del st.session_state[key]
+
+clear_cache_session()
 
 def get_memory_usage():
     process = psutil.Process()
