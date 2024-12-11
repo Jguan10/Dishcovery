@@ -16,7 +16,7 @@ def update_slider():
 def update_numin():
     st.session_state.numeric = st.session_state.slider            
 
-val = st.number_input('Input', value = 0, key = 'numeric', on_change = update_slider)
+val = st.number_input('Input', value = 0, key = 'numeric', on_change = update_slider, step = 10)
 
 
 slider_value = st.slider('slider',
