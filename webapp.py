@@ -11,15 +11,6 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 import zstandard as zstd
 
-@st.cache_resource
-def clear_cache_session():
-    load_data.clear()
-    load_knn.clear()
-    load_vectorizer.clear()
-    load_matrix.clear()
-
-clear_cache_session()
-
 def get_memory_usage():
     process = psutil.Process()
     memory_info = process.memory_info()
