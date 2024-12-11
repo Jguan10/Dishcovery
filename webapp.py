@@ -10,6 +10,7 @@ import pickle
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 import zstandard as zstd
+import uuid
 
 def clear_session_state():
     # Generate a unique session ID for each new session
