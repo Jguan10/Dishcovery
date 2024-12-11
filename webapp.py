@@ -13,18 +13,14 @@ import zstandard as zstd
 import uuid
 
 def clear_session_and_cache():
-    # Generate a unique session ID for each new session
     session_id = st.experimental_get_query_params().get("session_id", None)
     if not session_id:
-        # Generate a new session ID and set it in the URL query parameters
         session_id = str(uuid.uuid4())
         st.experimental_set_query_params(session_id=session_id)
-        # Clear session state and caches since it's a new session
         st.session_state.clear()
         st.cache_data.clear()
         st.cache_resource.clear()
 
-# Call the clear function at the start of the app
 clear_session_and_cache()
 
 def get_memory_usage():
