@@ -61,44 +61,23 @@ def load_data():
 
     return data
 
-def initialize_session_state():
-    if "data" not in st.session_state:
-        with st.spinner("Loading data..."):
-            st.session_state["data"] = load_data()
 
-    if "nearest_neighbors" not in st.session_state:
-        with st.spinner("Loading nearest neighbors model..."):
-            st.session_state["nearest_neighbors"] = load_knn()
-
-    if "vectorizer" not in st.session_state:
-        with st.spinner("Loading vectorizer..."):
-            st.session_state["vectorizer"] = load_vectorizer()
-
-    if "tfidf_matrix" not in st.session_state:
-        with st.spinner("Loading TF-IDF matrix..."):
-            st.session_state["tfidf_matrix"] = load_matrix()
-
-initialize_session_state()
-
-data = st.session_state["data"]
-nearest_neighbors = st.session_state["nearest_neighbors"]
-vectorizer = st.session_state["vectorizer"]
-tfidf_matrix = st.session_state["tfidf_matrix"]
+data = load_data()
+nearest_neighbors = load_knn()
+vectorizer = load_vectorizer()
+tfidf_matrix = load_matrix()
 
 lemmatizer = WordNetLemmatizer()
 
-@st.cache_data
 def lemmatize_string(string):
     string_lower = string.lower()
     tokens = word_tokenize(string_lower)
     lemmatized_tokens = [lemmatizer.lemmatize(token) for token in tokens]
     return ' '.join(lemmatized_tokens)
 
-@st.cache_data
 def lemmatize_list(list):
     return [lemmatizer.lemmatize(item.lower()) for item in list]
 
-@st.cache_data
 def recommend(preferred_ingredients, top_n=5, excluded_ingredients=None):
     if not preferred_ingredients or not preferred_ingredients.strip():
         return pd.DataFrame()
