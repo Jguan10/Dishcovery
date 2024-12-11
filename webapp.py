@@ -11,13 +11,6 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 import zstandard as zstd
 
-"""
-def get_memory_usage():
-    process = psutil.Process()
-    memory_info = process.memory_info()
-    return memory_info.rss / 1024 ** 2 
-"""
-
 @st.cache_resource
 def download_nltk_resources():
     resources = ['punkt_tab', 'wordnet']
