@@ -1,7 +1,6 @@
 import nltk
 
 import streamlit as st
-import psutil
 import pandas as pd
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
@@ -9,8 +8,6 @@ import scipy.sparse
 import pickle
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
-import zstandard as zstd
-from sentence_transformers import SentenceTransformer
 import faiss
 from sklearn.preprocessing import MinMaxScaler
 
