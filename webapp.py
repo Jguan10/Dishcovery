@@ -20,7 +20,7 @@ def get_memory_usage():
 st.write(f"Initial memory usage: {get_memory_usage():.2f} MB")
 @st.cache_resource
 def download_nltk_resources():
-    resources = ['punkt', 'wordnet']
+    resources = ['punkt_tab', 'wordnet']
     for resource in resources:
         try:
             nltk.data.find(f"corpora/{resource}")
