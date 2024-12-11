@@ -142,7 +142,7 @@ if st.button('Get Recommendations', key = 'Recommendations'):
                 st.write(f"**Sodium:** {row['SodiumContent']:.2f}mg")
                 st.write(f"**Total Carbohydrates:** {row['CarbohydrateContent']:.2f}g")
                 st.write(f"**Dietary Fiber:** {row['FiberContent']:.2f}g")
-                st.write(f"**Sugars:** {row['FiberContent']:.2f}g")
+                st.write(f"**Sugars:** {row['SugarContent']:.2f}g")
                 st.write(f"**Protein:** {row['ProteinContent']:.2f}g")
                 
                 # Parse instructions into separate steps
