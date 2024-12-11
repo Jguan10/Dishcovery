@@ -89,6 +89,11 @@ def initialize_session_state():
 
 initialize_session_state()
 
+data = st.session_state["data"]
+nearest_neighbors = st.session_state["nearest_neighbors"]
+vectorizer = st.session_state["vectorizer"]
+tfidf_matrix = st.session_state["tfidf_matrix"]
+
 st.write(f"Memory usage after initialization: {get_memory_usage():.2f} MB")
 
 lemmatizer = WordNetLemmatizer()
