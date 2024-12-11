@@ -70,12 +70,12 @@ def load_data():
 
     return data
 
-st.write(f"Memory usage after initializing: {get_memory_usage():.2f} MB")
-
 data = load_data()
 nearest_neighbors = load_knn()
 vectorizer = load_vectorizer()
 tfidf_matrix = load_matrix()
+
+st.write(f"Memory usage after initializing: {get_memory_usage():.2f} MB")
 
 lemmatizer = WordNetLemmatizer()
 
