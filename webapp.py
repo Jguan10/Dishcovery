@@ -14,13 +14,10 @@ with st.spinner('Loading models...'):
     with open('models/tfidf_vectorizer.pkl', 'rb') as f:
         vectorizer = pickle.load(f)
 
-@st.cache_data
-def load_data():
-    data = pd.read_csv('Data/recipes_food_com_revised.csv')
-    return data
-
 with st.spinner('Loading data...'):
-    data = load_data()
+    df1 = pd.read_csv('Data/revised_recipes_1.csv.xz')
+    df2 = pd.read_csv('Data/revised_recipes_2.csv.xz')
+    data = pd.merge(df1, df2, on = 'ID', how = 'inner')
 
 lemmatizer = WordNetLemmatizer()
 
