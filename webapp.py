@@ -40,7 +40,7 @@ def load_data():
 
     return data
 
-with st.spinner('Loading Data...')
+with st.spinner('Loading Data...'):
     data = load_data()
 
 lemmatizer = WordNetLemmatizer()
