@@ -18,6 +18,7 @@ def get_memory_usage():
     return memory_info.rss / 1024 ** 2 
 
 st.write(f"Initial memory usage: {get_memory_usage():.2f} MB")
+
 @st.cache_resource
 def download_nltk_resources():
     resources = ['punkt_tab', 'wordnet']
@@ -78,20 +79,17 @@ st.write(f"Memory usage after initializing: {get_memory_usage():.2f} MB")
 
 lemmatizer = WordNetLemmatizer()
 
-@st.cache_data
 def lemmatize_string(string):
     string_lower = string.lower()
     tokens = word_tokenize(string_lower)
     lemmatized_tokens = [lemmatizer.lemmatize(token) for token in tokens]
     return ' '.join(lemmatized_tokens)
 
-@st.cache_data
 def lemmatize_list(list):
     return [lemmatizer.lemmatize(item.lower()) for item in list]
 
 st.write(f"Memory usage after cache nlp: {get_memory_usage():.2f} MB")
 
-@st.cache_data
 def recommend(preferred_ingredients, top_n=5, excluded_ingredients=None):
     if not preferred_ingredients or not preferred_ingredients.strip():
         return pd.DataFrame()
