@@ -11,13 +11,13 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 import zstandard as zstd
 
-
+"""
 def get_memory_usage():
     process = psutil.Process()
     memory_info = process.memory_info()
     return memory_info.rss / 1024 ** 2 
+"""
 
-st.write(f"Initial memory usage: {get_memory_usage():.2f} MB")
 @st.cache_resource
 def download_nltk_resources():
     resources = ['punkt_tab', 'wordnet']
@@ -28,8 +28,6 @@ def download_nltk_resources():
             nltk.download(resource)
 
 download_nltk_resources()
-
-st.write(f"Memory usage after NLTK dl: {get_memory_usage():.2f} MB")
 
 @st.cache_resource
 def load_knn():
@@ -94,8 +92,6 @@ nearest_neighbors = st.session_state["nearest_neighbors"]
 vectorizer = st.session_state["vectorizer"]
 tfidf_matrix = st.session_state["tfidf_matrix"]
 
-st.write(f"Memory usage after initialization: {get_memory_usage():.2f} MB")
-
 lemmatizer = WordNetLemmatizer()
 
 @st.cache_data
@@ -108,8 +104,6 @@ def lemmatize_string(string):
 @st.cache_data
 def lemmatize_list(list):
     return [lemmatizer.lemmatize(item.lower()) for item in list]
-
-st.write(f"Memory usage after cache nlp: {get_memory_usage():.2f} MB")
 
 @st.cache_data
 def recommend(preferred_ingredients, top_n=5, excluded_ingredients=None):
@@ -143,7 +137,6 @@ def recommend(preferred_ingredients, top_n=5, excluded_ingredients=None):
     
     return recommendations
 
-st.write(f"Memory usage after cache recommendations: {get_memory_usage():.2f} MB")
 
 st.title('Dishcovery')
 ingredients_list = st.text_input("Which Ingredients Are You Using?")
@@ -154,10 +147,8 @@ st.write(f'Things to Exclude are: {exclude_list}')
 
 # Display each recipe in an expander
 if st.button('Get Recommendations', key = 'Recommendations'):
-    st.write(f"Memory usage after pressing button: {get_memory_usage():.2f} MB")
     with st.spinner('Recommending...'):
         recommendations = recommend(ingredients_list, excluded_ingredients = exclude_list)
-        st.write(f"Memory usage after recommending: {get_memory_usage():.2f} MB")
         for index, row in recommendations.iterrows():
             with st.expander(row['Name']):
                 st.markdown(f"## {row['Name']}")
