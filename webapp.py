@@ -1,6 +1,4 @@
 import nltk
-nltk.download('punkt_tab')
-nltk.download('wordnet')
 
 import streamlit as st
 import pandas as pd
@@ -12,12 +10,36 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 import zstandard as zstd
 
-with st.spinner('Loading models...'):
+@st.cache_resource
+def download_nltk_resources():
+    resources = ['punkt', 'wordnet']
+    for resource in resources:
+        try:
+            nltk.data.find(f"corpora/{resource}")
+        except LookupError:
+            nltk.download(resource)
+
+download_nltk_resources()
+
+@st.cache_resource
+
+@st.cache_resource
+def load_knn():
     with open('models/nearest_neighbors_model.pkl', 'rb') as f:
         nearest_neighbors = pickle.load(f)
+    
+    return nearest_neighbors
+
+@st.cache_resource
+def load_matrix():  
     tfidf_matrix = scipy.sparse.load_npz('models/tfidf_matrix.npz')
+    return tfidf_matrix
+
+@st.cache_resource
+def load_vectorizer():
     with open('models/tfidf_vectorizer.pkl', 'rb') as f:
         vectorizer = pickle.load(f)
+    return vectorizer
 
 @st.cache_data
 def load_data():
@@ -42,6 +64,11 @@ def load_data():
 
 with st.spinner('Loading Data...'):
     data = load_data()
+
+with st.spinner('Loading models...'):
+    nearest_neighbors = load_knn()
+    vectorizer = load_vectorizer()
+    tfidf_matrix = load_matrix()
 
 lemmatizer = WordNetLemmatizer()
 
