@@ -6,6 +6,7 @@ import scipy.sparse
 import pickle
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
+import zstandard as zstd
 
 with st.spinner('Loading models...'):
     with open('models/nearest_neighbors_model.pkl', 'rb') as f:
@@ -15,9 +16,17 @@ with st.spinner('Loading models...'):
         vectorizer = pickle.load(f)
 
 with st.spinner('Loading data...'):
-    df1 = pd.read_csv('Data/revised_recipes_1.csv.xz')
-    df2 = pd.read_csv('Data/revised_recipes_2.csv.xz')
-    data = pd.merge(df1, df2, on = 'ID', how = 'inner')
+    df1 = pd.read_csv('Data/revised_recipes_1_1.csv.zst', compression="zstd")
+    df2 = pd.read_csv('Data/revised_recipes_1_2.csv.zst', compression="zstd")
+    df1 = pd.concat([df1, df2], ignore_index=True)
+
+    df3 = pd.read_csv('Data/revised_recipes_2_1.csv.zst', compression='zstd')
+    df4 = pd.read_csv('Data/revised_recipes_2_2.csv.zst', compression='zstd')
+    df5 = pd.read_csv('Data/revised_recipes_2_3.csv.zst', compression='zstd')
+    df5 = pd.concat([df5, df4], ignore_index=True)
+    df5 = pd.concat([df5, df3], ignore_index=True)
+    
+    data = pd.merge(df1, df5, on = 'ID', how = 'inner')
 
 lemmatizer = WordNetLemmatizer()
 
@@ -78,8 +87,6 @@ if st.button('Get Recommendations', key = 'Recommendations'):
         for index, row in recommendations.iterrows():
             with st.expander(row['Name']):
                 st.markdown(f"## {row['Name']}")
-                st.write("**Description:**")
-                desc = row['Description']
                 st.write(desc)
                 st.write(f"**Similarity:** {row['Similarity']:.2f}")
                 st.write("**Ingredients:**")
