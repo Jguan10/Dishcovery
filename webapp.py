@@ -13,10 +13,10 @@ import zstandard as zstd
 
 @st.cache_resource
 def clear_cache_session():
-    st.cache_resource.clear()
-    st.cache_data.clear()
-    for key in st.session_state.keys():
-        del st.session_state[key]
+    load_data.clear()
+    load_knn.clear()
+    load_vectorizer.clear()
+    load_matrix.clear()
 
 clear_cache_session()
 
