@@ -12,27 +12,7 @@ from nltk.tokenize import word_tokenize
 import zstandard as zstd
 from sentence_transformers import SentenceTransformer
 import faiss
-
-
-def get_memory_usage():
-    process = psutil.Process()
-    memory_info = process.memory_info()
-    return memory_info.rss / 1024 ** 2 
-
-st.write(f"Initial memory usage: {get_memory_usage():.2f} MB")
-
-@st.cache_resource
-def download_nltk_resources():
-    resources = ['punkt_tab', 'wordnet']
-    for resource in resources:
-        try:
-            nltk.data.find(f"corpora/{resource}")
-        except LookupError:
-            nltk.download(resource)
-
-download_nltk_resources()
-
-st.write(f"Memory usage after NLTK dl: {get_memory_usage():.2f} MB")
+from sklearn.preprocessing import MinMaxScaler
 
 @st.cache_resource
 def load_knn():
@@ -60,30 +40,12 @@ def load_model():
 
 @st.cache_resource
 def load_index():
-    index = faiss.read_index("faiss_index.bin")
+    index = faiss.read_index("models/faiss_index.bin")
+    return index
 
 @st.cache_resource
 def load_data():
-    df1 = pd.read_csv('Data/revised_recipes_1_1.csv.zst', compression="zstd")
-    df2 = pd.read_csv('Data/revised_recipes_1_2.csv.zst', compression="zstd")
-    df6 = pd.read_csv('Data/revised_recipes_1_3.csv.zst', compression="zstd")
-    df1 = pd.concat([df1, df2], ignore_index=True)
-    del df2
-    df1 = pd.concat([df1, df6], ignore_index=True)
-    del df6
-
-    df3 = pd.read_csv('Data/revised_recipes_2_1.csv.zst', compression='zstd')
-    df4 = pd.read_csv('Data/revised_recipes_2_2.csv.zst', compression='zstd')
-    df5 = pd.read_csv('Data/revised_recipes_2_3.csv.zst', compression='zstd')
-    df5 = pd.concat([df5, df4], ignore_index=True)
-    del df4
-    df5 = pd.concat([df5, df3], ignore_index=True)
-    del df3
-    
-    data = pd.merge(df1, df5, on = 'ID', how = 'inner')
-    del df5
-    del df1
-
+    data = pd.read_csv('Data/recipes_food_com_combinedinfo.csv')
     return data
 
 nearest_neighbors = load_knn()
@@ -92,7 +54,6 @@ vectorizer = load_vectorizer()
 data = load_data()
 model = load_model()
 index = load_index()
-st.write(f"Memory usage after initializing: {get_memory_usage():.2f} MB")
 
 lemmatizer = WordNetLemmatizer()
 
@@ -105,10 +66,8 @@ def lemmatize_string(string):
 def lemmatize_list(list):
     return [lemmatizer.lemmatize(item.lower()) for item in list]
 
-st.write(f"Memory usage after cache nlp: {get_memory_usage():.2f} MB")
-
 def recommend_by_ingredients(ingredients_list, excluded_ingredients=None):
-    if not preferred_ingredients or not preferred_ingredients.strip():
+    if not ingredients_list or not ingredients_list.strip():
         return pd.DataFrame()
      
     excluded_ingredients = None if not excluded_ingredients.strip() else excluded_ingredients
@@ -126,10 +85,11 @@ def recommend_by_ingredients(ingredients_list, excluded_ingredients=None):
     user_vector = vectorizer.transform([lemmatized_ingredients])
     
     # Find the top N nearest neighbors
-    distances, indices = nearest_neighbors.kneighbors(user_vector, n_neighbors=50)
-    
+    distances, indices = nearest_neighbors.kneighbors(user_vector, data.shape[0])
+
+    recommendations = data.iloc[indices[0]].copy().reset_index()
     # Retrieve recommended recipes and their similarity scores
-    recommendations['IngredientSimilarity'] = 1 - distances[0]  # Similarity = 1 - distance (cosine)
+    recommendations['IngredientSimilarity'] = 1 - distances[0]  
 
     # filter out recipes containing excluded ingredients
     lemmatized_excluded_ingredients = lemmatize_list(excluded_ingredients)
@@ -151,17 +111,22 @@ def recommend_by_description(user_query):
     faiss.normalize_L2(np.array([query_embedding]))
 
     # query the faiss index
-    distances, indices = index.search(np.array([query_embedding]), df.shape[0])
+    distances, indices = index.search(np.array([query_embedding]), data.shape[0])
 
     # retrieve recommended rows
-    recommendations = df.iloc[indices[0]].copy().reset_index()
+    recommendations = data.iloc[indices[0]].copy().reset_index()
 
     # add similarity scores from faiss to the dataframe
     recommendations['DescriptionSimilarity'] = distances[0]
 
     return recommendations
 
+@st.cache_resource
 def recommend_combined(ingredients_list=None, user_query=None, ingredients_weight=0.5, description_weight=0.5, excluded_ingredients=None, top_n=5):
+    if ingredients_list is None and user_query is None:
+        st.warning("Please provide ingredients or a search query.")
+        return pd.DataFrame()
+    
     if ingredients_list is not None and user_query is None:
         return recommend_by_ingredients(ingredients_list=ingredients_list, excluded_ingredients=excluded_ingredients).head(top_n)
 
@@ -170,13 +135,19 @@ def recommend_combined(ingredients_list=None, user_query=None, ingredients_weigh
 
     if ingredients_list is not None and user_query is not None:
         if ingredients_weight + description_weight != 1:
-            print("Please make sure ingredients_weight and description_weight add up to 1.")
+            st.write("Please make sure ingredients_weight and query_weight add up to 100.")
+            return pd.DataFrame()
         else:
             # get recommendations from both models
             ingredient_recs = recommend_by_ingredients(ingredients_list=ingredients_list, excluded_ingredients=excluded_ingredients)
             description_recs = recommend_by_description(user_query)
 
             # merge the two recommendation lists on ID
+            ingredient_recs = ingredient_recs[['ID','Name', 'IngredientSimilarity', 'IngredientsRaw', 'Calories', 
+                                                'FatContent', 'SaturatedFatContent', 'CholesterolContent', 'SodiumContent',
+                                                'CarbohydrateContent', 'FiberContent', 'SugarContent', 'ProteinContent',
+                                                'Instructions']]
+            description_recs = description_recs[['ID','Name', 'DescriptionSimilarity']]
             combined_recs = pd.merge(ingredient_recs, description_recs, on=['ID','Name'], how='outer')
 
             # normalize scores to make sure they are on the same scale
@@ -191,40 +162,40 @@ def recommend_combined(ingredients_list=None, user_query=None, ingredients_weigh
 
             return combined_recs
 
-
-st.write(f"Memory usage after cache recommendations: {get_memory_usage():.2f} MB")
-
 st.title('Dishcovery')
 ingredients_list = st.text_input("Which ingredients are you using?")
 exclude_list = st.text_input("Any allergies or exceptions?")
-ingredients_weight = st.slider(
-    "Select weight for ingredients",  
-    min_value=0,                
-    max_value=100,             
-    value=50,                   
-)
-query_weight = st.slider(
-    "Select weight for query",  
-    min_value=0,                
-    max_value=100,             
-    value=50,                   
-)
-user_query = st.text_input("Input query")
+user_query = st.text_input("Input search query")
+     
+st.write('Adjust weights, please check that they add up to 100')
+query_weight = st.number_input('Search query weight', value = 0, key = 'query_numeric', step = 10)
+ingredients_weight = st.number_input('Ingredients weight', value = 0, key = 'ingredients_numeric', step = 10)
 
-st.write(f'Your Ingredients List is: {ingredients_list}')
-st.write(f'Things to Exclude are: {exclude_list}')
+query_weight = query_weight / 100
+ingredients_weight = ingredients_weight / 100
 
 # Display each recipe in an expander
 if st.button('Get Recommendations', key = 'Recommendations'):
     
-    st.write(f"Memory usage after pressing button: {get_memory_usage():.2f} MB")
     with st.spinner('Recommending...'):
-        recommendations = recommend_by_ingredients(ingredients_list, excluded_ingredients = exclude_list)
-        st.write(f"Memory usage after recommending: {get_memory_usage():.2f} MB")
+        recommendations = recommend_combined(
+            ingredients_list = ingredients_list,
+            excluded_ingredients = exclude_list,
+            user_query = user_query,
+            ingredients_weight = ingredients_weight,
+            description_weight = query_weight
+        )
+
+    if recommendations.empty:
+        st.write('No recommendations were made, try again!')
+    else:
         for index, row in recommendations.iterrows():
             with st.expander(row['Name']):
                 st.markdown(f"## {row['Name']}")
-                st.write(f"**Similarity:** {row['Similarity']:.2f}")
+                st.write(f"**Similarity:**")
+                st.write(f"Ingredient Similarity: {row['IngredientSimilarity']:.2f}")
+                st.write(f"Description Similarity: {row['DescriptionSimilarity']:.2f}")
+                st.write(f"WeightedScore: {row['WeightedScore']:.2f}")
                 st.write("**Ingredients:**")
                 raw_ingredients_list = row['IngredientsRaw'].split("', '")
                 for i, step in enumerate(raw_ingredients_list, 1):
@@ -242,7 +213,7 @@ if st.button('Get Recommendations', key = 'Recommendations'):
                 st.write(f"**Sodium:** {row['SodiumContent']:.2f}mg")
                 st.write(f"**Total Carbohydrates:** {row['CarbohydrateContent']:.2f}g")
                 st.write(f"**Dietary Fiber:** {row['FiberContent']:.2f}g")
-                st.write(f"**Sugars:** {row['FiberContent']:.2f}g")
+                st.write(f"**Sugars:** {row['SugarContent']:.2f}g")
                 st.write(f"**Protein:** {row['ProteinContent']:.2f}g")
                 
                 # Parse instructions into separate steps
@@ -254,4 +225,3 @@ if st.button('Get Recommendations', key = 'Recommendations'):
                         continue
                     st.write(f"{i}. {step}")
                 st.write("------")
-
