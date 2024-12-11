@@ -21,8 +21,9 @@ val = st.number_input('Input', value = 0, key = 'numeric', on_change = update_sl
 
 slider_value = st.slider('slider', min_value = 0, 
                         value = val, 
-                        max_value = 5,
-                        step = 1,
+                        max_value = 100,
+                        min_value = 0,
+                        step = 10,
                         key = 'slider', on_change= update_numin)
 
 def get_memory_usage():
