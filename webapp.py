@@ -11,28 +11,6 @@ from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 import zstandard as zstd
 
-def update_slider():
-    st.session_state.slider = st.session_state.numeric
-def update_numin():
-    st.session_state.numeric = st.session_state.slider            
-
-val = st.number_input('Input', value = 0, key = 'numeric', on_change = update_slider, step = 10)
-
-
-slider_value = st.slider('slider',
-                        value = val, 
-                        max_value = 100,
-                        min_value = 0,
-                        step = 10,
-                        key = 'slider', on_change= update_numin)
-
-def get_memory_usage():
-    process = psutil.Process()
-    memory_info = process.memory_info()
-    return memory_info.rss / 1024 ** 2 
-
-st.write(f"Initial memory usage: {get_memory_usage():.2f} MB")
-
 @st.cache_resource
 def download_nltk_resources():
     resources = ['punkt_tab', 'wordnet']
@@ -43,8 +21,6 @@ def download_nltk_resources():
             nltk.download(resource)
 
 download_nltk_resources()
-
-st.write(f"Memory usage after NLTK dl: {get_memory_usage():.2f} MB")
 
 @st.cache_resource
 def load_knn():
@@ -89,8 +65,6 @@ data = load_data()
 nearest_neighbors = load_knn()
 vectorizer = load_vectorizer()
 tfidf_matrix = load_matrix()
-
-st.write(f"Memory usage after initializing: {get_memory_usage():.2f} MB")
 
 lemmatizer = WordNetLemmatizer()
 
