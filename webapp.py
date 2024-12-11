@@ -19,7 +19,7 @@ def update_numin():
 val = st.number_input('Input', value = 0, key = 'numeric', on_change = update_slider)
 
 
-slider_value = st.slider('slider', min_value = 0, 
+slider_value = st.slider('slider',
                         value = val, 
                         max_value = 100,
                         min_value = 0,
