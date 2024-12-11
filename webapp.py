@@ -167,12 +167,12 @@ if st.button('Get Recommendations', key = 'Recommendations'):
                 st.write("------")
 
 manual_inp_val, slider_value = st.sidebar.beta_columns([0.25,0.75])
-    with manual_inp_val:
-        val = float(st.text_input('Input:', '0.05'))
+with manual_inp_val:
+    val = float(st.text_input('Input:', '0.05'))
 
-    with slider_value:
-        st.slider('slider', 
-                        min_value = -1.00,
-                        value = val,
-                        max_value = 5.10,
-                        step = 0.10)
+with slider_value:
+    st.slider('slider', 
+                    min_value = -1.00,
+                    value = val,
+                    max_value = 5.10,
+                    step = 0.10)
