@@ -1,4 +1,7 @@
+import nltk
+
 import streamlit as st
+import psutil
 import pandas as pd
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
@@ -6,36 +9,86 @@ import scipy.sparse
 import pickle
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
+import zstandard as zstd
 
-with st.spinner('Loading models...'):
+def get_memory_usage():
+    process = psutil.Process()
+    memory_info = process.memory_info()
+    return memory_info.rss / 1024 ** 2 
+
+st.write(f"Initial memory usage: {get_memory_usage():.2f} MB")
+
+@st.cache_resource
+def download_nltk_resources():
+    resources = ['punkt_tab', 'wordnet']
+    for resource in resources:
+        try:
+            nltk.data.find(f"corpora/{resource}")
+        except LookupError:
+            nltk.download(resource)
+
+download_nltk_resources()
+
+st.write(f"Memory usage after NLTK dl: {get_memory_usage():.2f} MB")
+
+@st.cache_resource
+def load_knn():
     with open('models/nearest_neighbors_model.pkl', 'rb') as f:
         nearest_neighbors = pickle.load(f)
+    
+    return nearest_neighbors
+
+@st.cache_resource
+def load_matrix():  
     tfidf_matrix = scipy.sparse.load_npz('models/tfidf_matrix.npz')
+    return tfidf_matrix
+
+@st.cache_resource
+def load_vectorizer():
     with open('models/tfidf_vectorizer.pkl', 'rb') as f:
         vectorizer = pickle.load(f)
+    return vectorizer
 
-@st.cache_data
+@st.cache_resource
 def load_data():
-    data = pd.read_csv('Data/recipes_food_com_revised.csv')
+    df1 = pd.read_csv('Data/revised_recipes_1_1.csv.zst', compression="zstd")
+    df2 = pd.read_csv('Data/revised_recipes_1_2.csv.zst', compression="zstd")
+    df1 = pd.concat([df1, df2], ignore_index=True)
+    del df2
+
+    df3 = pd.read_csv('Data/revised_recipes_2_1.csv.zst', compression='zstd')
+    df4 = pd.read_csv('Data/revised_recipes_2_2.csv.zst', compression='zstd')
+    df5 = pd.read_csv('Data/revised_recipes_2_3.csv.zst', compression='zstd')
+    df5 = pd.concat([df5, df4], ignore_index=True)
+    del df4
+    df5 = pd.concat([df5, df3], ignore_index=True)
+    del df3
+    
+    data = pd.merge(df1, df5, on = 'ID', how = 'inner')
+    del df5
+    del df1
+
     return data
 
-with st.spinner('Loading data...'):
-    data = load_data()
+nearest_neighbors = load_knn()
+tfidf_matrix = load_matrix()
+vectorizer = load_vectorizer()
+data = load_data()
+st.write(f"Memory usage after initializing: {get_memory_usage():.2f} MB")
 
 lemmatizer = WordNetLemmatizer()
 
-@st.cache_data
 def lemmatize_string(string):
     string_lower = string.lower()
     tokens = word_tokenize(string_lower)
     lemmatized_tokens = [lemmatizer.lemmatize(token) for token in tokens]
     return ' '.join(lemmatized_tokens)
 
-@st.cache_data
 def lemmatize_list(list):
     return [lemmatizer.lemmatize(item.lower()) for item in list]
 
-@st.cache_data
+st.write(f"Memory usage after cache nlp: {get_memory_usage():.2f} MB")
+
 def recommend(preferred_ingredients, top_n=5, excluded_ingredients=None):
     if not preferred_ingredients or not preferred_ingredients.strip():
         return pd.DataFrame()
@@ -67,6 +120,8 @@ def recommend(preferred_ingredients, top_n=5, excluded_ingredients=None):
     
     return recommendations
 
+st.write(f"Memory usage after cache recommendations: {get_memory_usage():.2f} MB")
+
 st.title('Dishcovery')
 ingredients_list = st.text_input("Which Ingredients Are You Using?")
 exclude_list = st.text_input("Any Allergies or Exceptions?")
@@ -76,14 +131,13 @@ st.write(f'Things to Exclude are: {exclude_list}')
 
 # Display each recipe in an expander
 if st.button('Get Recommendations', key = 'Recommendations'):
+    st.write(f"Memory usage after pressing button: {get_memory_usage():.2f} MB")
     with st.spinner('Recommending...'):
         recommendations = recommend(ingredients_list, excluded_ingredients = exclude_list)
+        st.write(f"Memory usage after recommending: {get_memory_usage():.2f} MB")
         for index, row in recommendations.iterrows():
             with st.expander(row['Name']):
                 st.markdown(f"## {row['Name']}")
-                st.write("**Description:**")
-                desc = row['Description']
-                st.write(desc)
                 st.write(f"**Similarity:** {row['Similarity']:.2f}")
                 st.write("**Ingredients:**")
                 raw_ingredients_list = row['IngredientsRaw'].split("', '")
