@@ -6,6 +6,7 @@ import numpy as np
 from sklearn.neighbors import NearestNeighbors
 import scipy.sparse
 import pickle
+from sentence_transformers import SentenceTransformer
 from nltk.stem import WordNetLemmatizer
 from nltk.tokenize import word_tokenize
 import faiss
@@ -49,7 +50,7 @@ nearest_neighbors = load_knn()
 tfidf_matrix = load_matrix()
 vectorizer = load_vectorizer()
 data = load_data()
-model = load_model()
+model = SentenceTransformer('all-MiniLM-L6-v2')
 index = load_index()
 
 lemmatizer = WordNetLemmatizer()
