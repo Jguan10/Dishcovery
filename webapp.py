@@ -121,7 +121,6 @@ if st.button('Get Recommendations', key = 'Recommendations'):
     with st.spinner('Recommending...'):
         recommendations = recommend(ingredients_list, excluded_ingredients = exclude_list)
         for index, row in recommendations.iterrows():
-            st.write(f"Memory usage after recommending: {get_memory_usage():.2f} MB")
             with st.expander(row['Name']):
                 st.markdown(f"## {row['Name']}")
                 st.write(f"**Similarity:** {row['Similarity']:.2f}")
