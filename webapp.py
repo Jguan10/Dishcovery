@@ -112,6 +112,7 @@ def recommend(preferred_ingredients, top_n=5, excluded_ingredients=None):
 st.title('Dishcovery')
 url = "https://github.com/Jguan10/Dishcovery"
 st.markdown("Check out the Github [here](%s)!" % url)
+st.markdown("Description recommender is not deployed due to sizing constraints!")
 
 ingredients_list = st.text_input("Which Ingredients Are You Using?")
 exclude_list = st.text_input("Any Allergies or Exceptions?")
