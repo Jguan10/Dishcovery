@@ -111,8 +111,7 @@ def recommend(preferred_ingredients, top_n=5, excluded_ingredients=None):
 
 st.title('Dishcovery')
 url = "https://github.com/Jguan10/Dishcovery"
-st.write("check out this [link](%s)" % url)
-st.markdown("check out this [link](%s)" % url)
+st.markdown("Check out the Github [here](%s)!" % url)
 ingredients_list = st.text_input("Which Ingredients Are You Using?")
 exclude_list = st.text_input("Any Allergies or Exceptions?")
 
